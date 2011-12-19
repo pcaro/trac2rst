@@ -2,13 +2,13 @@ trac2rst
 ========
 
 I use ``trac2rst`` to help me in the task to pass documentacion
-from trac to sphinx. I usally copy the trac wiki page to a temporaly file, run
+from `trac`_ to `sphinx`_ (`reStructuredText`_). I usally copy the trac wiki page to a temporaly file, run
 the script, copy the output to the new rest file and do manual changes.
 
 Features
 --------
 
-The idea is use the tool to do the more tedious work (I mean transforming
+The idea is use this tool to do the more tedious work (I mean transforming
 lists, links and inliners).
 You *must* review and fix the result later.
 
@@ -73,3 +73,6 @@ Credits
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _`modern-package-template`: http://pypi.python.org/pypi/modern-package-template
 .. _zest.releaser: http://pypi.python.org/pypi/zest.releaser
+.. _trac: http://trac.edgewall.org/
+.. _sphinx: http://sphinx.pocoo.org/
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
