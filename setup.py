@@ -6,7 +6,7 @@ README = open(os.path.join(here, 'README.rst')).read()
 NEWS = open(os.path.join(here, 'HISTORY.txt')).read()
 
 
-version = '0.1dev'
+version = '0.1'
 
 install_requires = [
     # List your project dependencies here.
@@ -20,9 +20,15 @@ setup(name='trac2rst',
     description="Quick an dirty tool to transform text in Trac Wiki formatting to Restructured Text",
     long_description=README + '\n\n' + NEWS,
     classifiers=[
-      # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+      'License :: OSI Approved :: MIT License',
+      'Programming Language :: Python',
+      'Topic :: Documentation',
+      'Topic :: Software Development :: Documentation',
+      'Framework :: Trac',
+      'Topic :: Text Processing',
+      'Topic :: Utilities',
     ],
-    keywords='',
+    keywords='restructuredtext,rst,converter',
     author='Pablo Caro',
     author_email='pcaro@yaco.es',
     url='',
