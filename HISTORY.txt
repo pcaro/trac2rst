@@ -7,12 +7,12 @@ Changelog
 =========
 
 
-0.2 (unreleased)
+0.2 (2011-12-19)
 ----------------
 
 - pep8 compliant
 - Global variables removed
-
+- Set a TODO comment por preformated text
 
 0.1 (2011-12-19)
 ----------------
