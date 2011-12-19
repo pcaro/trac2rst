@@ -78,11 +78,6 @@ INLINERS = [(re.compile(r"'''(?P<text>" + TEXT_CONTENT + r")'''"), '**'),  # '''
 # [wiki:Herramientas/Kablink Una wiki]
 
 
-def http_link(m, path='wiki/'):
-    global options
-    return options.tracurl + path + m.group(1)
-
-
 def make_rest_link(text, link):
     return "`%s <%s>`_" % (text, link)
 
@@ -97,110 +92,113 @@ REPORT = r'\{' + re_group(r'report', r'\d+') + r'\}'
 PROCESSOR = r"\#\!.*"
 PROCESSOR_RE = re.compile(PROCESSOR)
 
-# (re, replacement)
-LINKS = [
-    (re.compile(r'\[' + WIKI + r'\]'), lambda m: make_rest_link('wiki %s' % m.group(1), http_link(m, 'wiki/'))),
-    (re.compile(r'\[' + TICKET + r'\]'), lambda m: make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
-    # Resolve links
-    (re.compile(r'\[' + WIKI), lambda m: '[' + http_link(m, 'wiki/')),
-    (re.compile(r'\[' + TICKET), lambda m: '[' + http_link(m, 'ticket/')),
-
-    (re.compile(WIKI), lambda m: make_rest_link('wiki %s' % m.group(1), http_link(m, 'wiki/'))),
-    (re.compile(TICKET), lambda m: make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
-    (re.compile(TICKET2), lambda m: make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
-    (re.compile(CHANGESET), lambda m: make_rest_link('revision %s' % m.group(1), http_link(m, 'changeset/'))),
-    (re.compile(CHANGESET2), lambda m: make_rest_link('revision %s' % m.group(1), http_link(m, 'changeset/'))),
-    (re.compile(REPORT), lambda m: make_rest_link('informe %s' % m.group(1), http_link(m, 'report/'))),
-    (re.compile(r'\[' +  # [
-                re_group(r'link', LINK_CONTENT) +
-                r' ' +  # space
-                re_group(r'text', TEXT_CONTENT) +
-                r'\]'  # ]
-                ), "`\g<text> <\g<link>>`_"),
-    (re.compile(r'\[' +  # [
-             re_group(r'link', LINK_CONTENT) +
-             r'\]'  # ]
-             ), "`\g<link> <\g<link>>`_"),
-]
-
-
 SKIP = ['[[PageOutline]]\n']
 
-indentation_levels = []
 
+class Trac2RestProccessor(object):
 
-def process_line(line, linebefore=''):
-    global indentation_levels
-    result = line
-    if line in SKIP:
-        logging.debug('Skiping: %s' % line)
-        return ''
+    def __init__(self, options):
+        self.options = options
+        self.indentation_levels = []
+            # (re, replacement)
+        self.LINKS = [
+            (re.compile(r'\[' + WIKI + r'\]'), lambda m: make_rest_link('wiki %s' % m.group(1), self.http_link(m, 'wiki/'))),
+            (re.compile(r'\[' + TICKET + r'\]'), lambda m: make_rest_link('ticket %s' % m.group(1), self.http_link(m, 'ticket/'))),
+            # Resolve links
+            (re.compile(r'\[' + WIKI), lambda m: '[' + self.http_link(m, 'wiki/')),
+            (re.compile(r'\[' + TICKET), lambda m: '[' + self.http_link(m, 'ticket/')),
 
-    # Process Headers
-    for exp, top, botton in HEADERS:
-        match = exp.match(line)
-        if match:
-            result = wrap(match.group('header'), top=top, botton=botton)
-            return  result
+            (re.compile(WIKI), lambda m: make_rest_link('wiki %s' % m.group(1), self.http_link(m, 'wiki/'))),
+            (re.compile(TICKET), lambda m: make_rest_link('ticket %s' % m.group(1), self.http_link(m, 'ticket/'))),
+            (re.compile(TICKET2), lambda m: make_rest_link('ticket %s' % m.group(1), self.http_link(m, 'ticket/'))),
+            (re.compile(CHANGESET), lambda m: make_rest_link('revision %s' % m.group(1), self.http_link(m, 'changeset/'))),
+            (re.compile(CHANGESET2), lambda m: make_rest_link('revision %s' % m.group(1), self.http_link(m, 'changeset/'))),
+            (re.compile(REPORT), lambda m: make_rest_link('informe %s' % m.group(1), self.http_link(m, 'report/'))),
+            (re.compile(r'\[' +  # [
+                        re_group(r'link', LINK_CONTENT) +
+                        r' ' +  # space
+                        re_group(r'text', TEXT_CONTENT) +
+                        r'\]'  # ]
+                        ), "`\g<text> <\g<link>>`_"),
+            (re.compile(r'\[' +  # [
+                     re_group(r'link', LINK_CONTENT) +
+                     r'\]'  # ]
+                     ), "`\g<link> <\g<link>>`_"),
+        ]
 
-    # Process inlines
-    for exp, char in INLINERS:
-        repl = '%s\g<text>%s' % (char, char)
-        result = exp.sub(repl, result)
+    def http_link(self, m, path='wiki/'):
+        return self.options.tracurl + path + m.group(1)
 
-    # Process links
-    for re, rpl in LINKS:
-        result = re.sub(rpl, result)
+    def process_line(self, line, linebefore=''):
+        result = line
+        if line in SKIP:
+            logging.debug('Skiping: %s' % line)
+            return ''
 
-    # Preformatted text
-    line_striped = line.strip()
-    if line_striped == '{{{':
-        logging.error('Preformatted text found. Please do the correct indentation')
-        return '\n::\n'
-    if line_striped == '}}}':
-        return '\n'
-    if PROCESSOR_RE.match(line_striped):
-        # Delete #!python
-        return ''
+        # Process Headers
+        for exp, top, botton in HEADERS:
+            match = exp.match(line)
+            if match:
+                result = wrap(match.group('header'), top=top, botton=botton)
+                return  result
 
-    # Process lists
-    if is_list_item(line):
-        if not is_list_item(linebefore):
-            indentation_levels = [0]
-            result = set_indentation(result, 0)
-            result = '\n' + result
-        else:
-            if indentation_level(line) > indentation_level(linebefore):
-                indentation_levels = indentation_levels + [3]
-                result = set_indentation(result, indentation_levels[-1])
-                result = '\n' + result  # nested lists
-            elif indentation_level(line) < indentation_level(linebefore):
-                indentation_levels = indentation_levels[:-1]
-                result = set_indentation(result, indentation_levels[-1])
-                result = '\n' + result  # nested lists
+        # Process inlines
+        for exp, char in INLINERS:
+            repl = '%s\g<text>%s' % (char, char)
+            result = exp.sub(repl, result)
+
+        # Process links
+        for re, rpl in self.LINKS:
+            result = re.sub(rpl, result)
+
+        # Preformatted text
+        line_striped = line.strip()
+        if line_striped == '{{{':
+            logging.error('Preformatted text found. Please do the correct indentation')
+            return '\n::\n'
+        if line_striped == '}}}':
+            return '\n'
+        if PROCESSOR_RE.match(line_striped):
+            # Delete #!python
+            return ''
+
+        # Process lists
+        if is_list_item(line):
+            if not is_list_item(linebefore):
+                self.indentation_levels = [0]
+                result = set_indentation(result, 0)
+                result = '\n' + result
             else:
-                result = set_indentation(result, indentation_levels[-1])
-                # Same level list.
-        # We use always auto-enumerated
-        # In trac you can set the same number not in reST
-        # 1. este cero sera un uno
-        # 1. este cero sera un dos
-        if is_list_item(line) == 'numerated':
-            index = indentation_level(result)
-            result = result[:index] + '#' + result[index + 1:]
-    else:
-        if indentation_levels:
-                indentation_levels = []
+                if indentation_level(line) > indentation_level(linebefore):
+                    self.indentation_levels = self.indentation_levels + [3]
+                    result = set_indentation(result, self.indentation_levels[-1])
+                    result = '\n' + result  # nested lists
+                elif indentation_level(line) < indentation_level(linebefore):
+                    self.indentation_levels = self.indentation_levels[:-1]
+                    result = set_indentation(result, self.indentation_levels[-1])
+                    result = '\n' + result  # nested lists
+                else:
+                    result = set_indentation(result, self.indentation_levels[-1])
+                    # Same level list.
+            # We use always auto-enumerated
+            # In trac you can set the same number not in reST
+            # 1. este cero sera un uno
+            # 1. este cero sera un dos
+            if is_list_item(line) == 'numerated':
+                index = indentation_level(result)
+                result = result[:index] + '#' + result[index + 1:]
+        else:
+            if self.indentation_levels:
+                    self.indentation_levels = []
 
-    return result
+        return result
 
-
-def process(input, output):
-    with input:
-        linebefore = ''
-        for line in input:
-            output.write(process_line(line, linebefore))
-            linebefore = line
+    def process(self, input, output):
+        with input:
+            linebefore = ''
+            for line in input:
+                output.write(self.process_line(line, linebefore))
+                linebefore = line
 
 
 def main():
@@ -231,7 +229,6 @@ def main():
                   dest="tracurl",
                   default='',
                   help="Trac url. Used for tickets, changeset and wiki links")
-    global options
     (options, args) = parser.parse_args()
 
     logging.basicConfig(level=logging.WARNING, stream=sys.stderr)
@@ -250,7 +247,8 @@ def main():
     if options.output:
         output = open(options.output, "w")
 
-    process(input, output)
+    p = Trac2RestProccessor(options)
+    p.process(input, output)
 
 if __name__ == '__main__':
     main()

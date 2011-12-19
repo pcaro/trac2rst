@@ -10,7 +10,8 @@ Changelog
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- pep8 compliant
+- Global variables removed
 
 
 0.1 (2011-12-19)
