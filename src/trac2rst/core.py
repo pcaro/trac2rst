@@ -154,8 +154,9 @@ class Trac2RestProccessor(object):
         # Preformatted text
         line_striped = line.strip()
         if line_striped == '{{{':
-            logging.error('Preformatted text found. Please do the correct indentation')
-            return '\n::\n'
+            logging.error('Preformatted text found. Please do the correct indentation and set language')
+
+            return '\n.. TODO: Indent lines, set language: Example .. code-block:: python\n'
         if line_striped == '}}}':
             return '\n'
         if PROCESSOR_RE.match(line_striped):
@@ -189,7 +190,7 @@ class Trac2RestProccessor(object):
                 result = result[:index] + '#' + result[index + 1:]
         else:
             if self.indentation_levels:
-                    self.indentation_levels = []
+                self.indentation_levels = []
 
         return result
 
