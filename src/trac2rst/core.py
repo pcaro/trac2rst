@@ -16,6 +16,7 @@ def wrap(text, top='', botton=''):
         botton = '\n' + botton * text_len + '\n'
     return '%s%s%s' % (top, text, botton)
 
+
 def indentation_level(line):
     lenght = len(line)
     c = 0
@@ -26,6 +27,7 @@ def indentation_level(line):
             break
     return c
 
+
 def set_indentation(line, number=2):
     "Remove previous indentation, and set indentation to number"
     spaces = indentation_level(line)
@@ -33,12 +35,13 @@ def set_indentation(line, number=2):
         return line
     return number * ' ' + line[spaces:]
 
+
 def is_list_item(line):
     spaces = indentation_level(line)
     if spaces:
         if len(line) > spaces + 2:
             char1 = line[spaces]
-            char2 = line[spaces +1 ]
+            char2 = line[spaces + 1]
             if (char1 in ['*', '-'] and char2 == ' '):
                 return 'bullets'
             if  (char1.isdigit() and char2 == '.'):
@@ -52,6 +55,7 @@ def is_list_item(line):
             if  (char1.isdigit() and char2 == '.'):
                 return 'numerated'
     return False
+
 
 def re_group(raw_name, raw_exp):
     return r'(?P<' + raw_name + r'>' + raw_exp + r')'
@@ -78,16 +82,15 @@ def http_link(m, path='wiki/'):
     global options
     return options.tracurl + path + m.group(1)
 
+
 def make_rest_link(text, link):
     return "`%s <%s>`_" % (text, link)
 
-def make_link():
-    pass
 
-LINK_CONTENT = r'[a-zA-Z0-9_\-áéíóúAÉÍÓÚÑñ/:\.]+' # no space allowed
+LINK_CONTENT = r'[a-zA-Z0-9_\-áéíóúAÉÍÓÚÑñ/:\.]+'  # no space allowed
 WIKI = r'wiki:"?' + re_group(r'wiki', LINK_CONTENT) + r'"?'
 TICKET = r'ticket:' + re_group(r'ticket', r'\d+')
-TICKET2 =  r'#' + re_group(r'ticket', r'\d+')
+TICKET2 = r'#' + re_group(r'ticket', r'\d+')
 CHANGESET = r'\[' + re_group(r'changeset', r'\d+') + r'\]'
 CHANGESET2 = r'r' + re_group(r'changeset', r'\d+')
 REPORT = r'\{' + re_group(r'report', r'\d+') + r'\}'
@@ -96,27 +99,27 @@ PROCESSOR_RE = re.compile(PROCESSOR)
 
 # (re, replacement)
 LINKS = [
-    (re.compile(r'\[' + WIKI + r'\]'), lambda m :  make_rest_link('wiki %s' % m.group(1), http_link(m, 'wiki/'))),
-    (re.compile(r'\[' + TICKET + r'\]'), lambda m :  make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
+    (re.compile(r'\[' + WIKI + r'\]'), lambda m: make_rest_link('wiki %s' % m.group(1), http_link(m, 'wiki/'))),
+    (re.compile(r'\[' + TICKET + r'\]'), lambda m: make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
     # Resolve links
-    (re.compile(r'\[' + WIKI ), lambda m : '[' + http_link(m, 'wiki/')),
-    (re.compile(r'\[' + TICKET), lambda m : '[' + http_link(m, 'ticket/')),
+    (re.compile(r'\[' + WIKI), lambda m: '[' + http_link(m, 'wiki/')),
+    (re.compile(r'\[' + TICKET), lambda m: '[' + http_link(m, 'ticket/')),
 
-    (re.compile(WIKI ), lambda m : make_rest_link('wiki %s' % m.group(1), http_link(m, 'wiki/'))),
-    (re.compile(TICKET), lambda m : make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
-    (re.compile(TICKET2), lambda m : make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
-    (re.compile(CHANGESET), lambda m : make_rest_link('revision %s' % m.group(1), http_link(m, 'changeset/'))),
-    (re.compile(CHANGESET2), lambda m : make_rest_link('revision %s' % m.group(1), http_link(m, 'changeset/'))),
-    (re.compile(REPORT ), lambda m : make_rest_link('informe %s' % m.group(1), http_link(m, 'report/'))),
-    (re.compile(r'\[' + # [
+    (re.compile(WIKI), lambda m: make_rest_link('wiki %s' % m.group(1), http_link(m, 'wiki/'))),
+    (re.compile(TICKET), lambda m: make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
+    (re.compile(TICKET2), lambda m: make_rest_link('ticket %s' % m.group(1), http_link(m, 'ticket/'))),
+    (re.compile(CHANGESET), lambda m: make_rest_link('revision %s' % m.group(1), http_link(m, 'changeset/'))),
+    (re.compile(CHANGESET2), lambda m: make_rest_link('revision %s' % m.group(1), http_link(m, 'changeset/'))),
+    (re.compile(REPORT), lambda m: make_rest_link('informe %s' % m.group(1), http_link(m, 'report/'))),
+    (re.compile(r'\[' +  # [
                 re_group(r'link', LINK_CONTENT) +
-                r' ' + # space
+                r' ' +  # space
                 re_group(r'text', TEXT_CONTENT) +
-                r'\]' # ]
+                r'\]'  # ]
                 ), "`\g<text> <\g<link>>`_"),
-    (re.compile(r'\[' + # [
+    (re.compile(r'\[' +  # [
              re_group(r'link', LINK_CONTENT) +
-             r'\]' # ]
+             r'\]'  # ]
              ), "`\g<link> <\g<link>>`_"),
 ]
 
@@ -124,6 +127,8 @@ LINKS = [
 SKIP = ['[[PageOutline]]\n']
 
 indentation_levels = []
+
+
 def process_line(line, linebefore=''):
     global indentation_levels
     result = line
@@ -158,7 +163,6 @@ def process_line(line, linebefore=''):
         # Delete #!python
         return ''
 
-
     # Process lists
     if is_list_item(line):
         if not is_list_item(linebefore):
@@ -183,11 +187,10 @@ def process_line(line, linebefore=''):
         # 1. este cero sera un dos
         if is_list_item(line) == 'numerated':
             index = indentation_level(result)
-            result = result[:index] + '#' + result[index+1:]
+            result = result[:index] + '#' + result[index + 1:]
     else:
         if indentation_levels:
                 indentation_levels = []
-
 
     return result
 
