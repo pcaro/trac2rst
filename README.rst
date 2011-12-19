@@ -67,7 +67,9 @@ Credits
 - `Distribute`_
 - `Buildout`_
 - `modern-package-template`_
+- `zest.releaser`_
 
 .. _Buildout: http://www.buildout.org/
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _`modern-package-template`: http://pypi.python.org/pypi/modern-package-template
+.. _zest.releaser: http://pypi.python.org/pypi/zest.releaser
